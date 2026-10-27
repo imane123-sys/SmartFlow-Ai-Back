@@ -6,20 +6,20 @@ import com.smartflow.entity.Category;
 import com.smartflow.exception.BusinessException;
 import com.smartflow.exception.ResourceNotFoundException;
 import com.smartflow.repository.CategoryRepository;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Service
+@RequiredArgsConstructor
 public class CategoryService {
 
     private final CategoryRepository categoryRepository;
-
-    public CategoryService(CategoryRepository categoryRepository) {
-        this.categoryRepository = categoryRepository;
-    }
 
     @Transactional(readOnly = true)
     public List<CategoryResponseDTO> getAllCategories(Boolean activeOnly) {

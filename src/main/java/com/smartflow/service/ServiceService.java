@@ -6,19 +6,19 @@ import com.smartflow.entity.Service;
 import com.smartflow.exception.BusinessException;
 import com.smartflow.exception.ResourceNotFoundException;
 import com.smartflow.repository.ServiceRepository;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.stream.Collectors;
 
+@Slf4j
 @org.springframework.stereotype.Service
+@RequiredArgsConstructor
 public class ServiceService {
 
     private final ServiceRepository serviceRepository;
-
-    public ServiceService(ServiceRepository serviceRepository) {
-        this.serviceRepository = serviceRepository;
-    }
 
     @Transactional(readOnly = true)
     public List<ServiceResponseDTO> getAllServices(Boolean activeOnly) {
