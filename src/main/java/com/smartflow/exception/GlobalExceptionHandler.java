@@ -81,18 +81,59 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
     }
 
+    @ExceptionHandler(org.springframework.security.authentication.BadCredentialsException.class)
+    public ResponseEntity<ErrorResponseDTO> handleBadCredentialsException(
+            org.springframework.security.authentication.BadCredentialsException exception,
+            HttpServletRequest request) {
+        ErrorResponseDTO errorResponse = ErrorResponseDTO.builder()
+                .timestamp(LocalDateTime.now())
+                .status(HttpStatus.UNAUTHORIZED.value())
+                .error(HttpStatus.UNAUTHORIZED.getReasonPhrase())
+                .message("Email ou mot de passe incorrect")
+                .path(request.getRequestURI())
+                .build();
+        return new ResponseEntity<>(errorResponse, HttpStatus.UNAUTHORIZED);
+    }
+
+    @ExceptionHandler(org.springframework.security.access.AccessDeniedException.class)
+    public ResponseEntity<ErrorResponseDTO> handleAccessDeniedException(
+            org.springframework.security.access.AccessDeniedException exception,
+            HttpServletRequest request) {
+        ErrorResponseDTO errorResponse = ErrorResponseDTO.builder()
+                .timestamp(LocalDateTime.now())
+                .status(HttpStatus.FORBIDDEN.value())
+                .error(HttpStatus.FORBIDDEN.getReasonPhrase())
+                .message("Vous n'avez pas l'autorisation d'accéder à cette ressource")
+                .path(request.getRequestURI())
+                .build();
+        return new ResponseEntity<>(errorResponse, HttpStatus.FORBIDDEN);
+    }
+
+    @ExceptionHandler(org.springframework.security.core.userdetails.UsernameNotFoundException.class)
+    public ResponseEntity<ErrorResponseDTO> handleUsernameNotFoundException(
+            org.springframework.security.core.userdetails.UsernameNotFoundException exception,
+            HttpServletRequest request) {
+        ErrorResponseDTO errorResponse = ErrorResponseDTO.builder()
+                .timestamp(LocalDateTime.now())
+                .status(HttpStatus.NOT_FOUND.value())
+                .error(HttpStatus.NOT_FOUND.getReasonPhrase())
+                .message(exception.getMessage())
+                .path(request.getRequestURI())
+                .build();
+        return new ResponseEntity<>(errorResponse, HttpStatus.NOT_FOUND);
+    }
+
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorResponseDTO> handleGeneralException(
             Exception exception,
             HttpServletRequest request) {
-        ErrorResponseDTO errorResponse = new ErrorResponseDTO(
-                LocalDateTime.now(),
-                HttpStatus.INTERNAL_SERVER_ERROR.value(),
-                HttpStatus.INTERNAL_SERVER_ERROR.getReasonPhrase(),
-                "An unexpected internal error occurred",
-                request.getRequestURI(),
-                null
-        );
+        ErrorResponseDTO errorResponse = ErrorResponseDTO.builder()
+                .timestamp(LocalDateTime.now())
+                .status(HttpStatus.INTERNAL_SERVER_ERROR.value())
+                .error(HttpStatus.INTERNAL_SERVER_ERROR.getReasonPhrase())
+                .message("An unexpected internal error occurred")
+                .path(request.getRequestURI())
+                .build();
         return new ResponseEntity<>(errorResponse, HttpStatus.INTERNAL_SERVER_ERROR);
     }
 }
