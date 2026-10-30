@@ -74,6 +74,10 @@ public class User {
         this.active = active != null ? active : true;
     }
 
+    public String getFullName() {
+        return (firstName != null ? firstName : "") + " " + (lastName != null ? lastName : "");
+    }
+
     @PrePersist
     protected void onCreate() {
         this.createdAt = LocalDateTime.now();
