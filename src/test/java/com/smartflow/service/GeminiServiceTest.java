@@ -2,6 +2,7 @@ package com.smartflow.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.smartflow.dto.ai.GeminiAnalysisResult;
+import com.smartflow.dto.charter.GeminiCharterResult;
 import com.smartflow.entity.Category;
 import com.smartflow.entity.Incident;
 import com.smartflow.entity.Priority;
@@ -138,5 +139,52 @@ class GeminiServiceTest {
 
         BusinessException exception = assertThrows(BusinessException.class, () -> geminiService.analyzeIncident(testIncident));
         assertNotNull(exception.getMessage());
+    }
+
+    @Test
+    void generateCharterDraft_WhenMockMode_ShouldReturnStructuredMockCharter() {
+        ReflectionTestUtils.setField(geminiService, "apiKey", "mock-key");
+        ReflectionTestUtils.setField(geminiService, "model", "gemini-1.5-flash");
+
+        GeminiCharterResult result = geminiService.generateCharterDraft(testIncident, null);
+
+        assertNotNull(result);
+        assertNotNull(result.getTitle());
+        assertNotNull(result.getObjective());
+        assertFalse(result.getSteps().isEmpty());
+        assertEquals(1, result.getSteps().get(0).getStepOrder());
+    }
+
+    @Test
+    void generateCharterDraft_WhenRealApiSucceeds_ShouldParseJsonResponse() {
+        ReflectionTestUtils.setField(geminiService, "apiKey", "test-live-key");
+        ReflectionTestUtils.setField(geminiService, "model", "gemini-1.5-flash");
+
+        String geminiJson = """
+                {
+                  "candidates": [
+                    {
+                      "content": {
+                        "parts": [
+                          {
+                            "text": "{\\"title\\": \\"Charte d'intervention - Remplacement Switch\\", \\"objective\\": \\"Rétablir la connectivité du bâtiment\\", \\"safetyPrecautions\\": \\"Couper le disjoncteur\\", \\"requiredResources\\": \\"Tournevis, switch de rechange\\", \\"steps\\": [{\\"stepOrder\\": 1, \\"title\\": \\"Mise hors tension\\", \\"description\\": \\"Débrancher l'alimentation\\", \\"estimatedDurationMinutes\\": 10}]}"
+                          }
+                        ]
+                      }
+                    }
+                  ]
+                }
+                """;
+
+        ResponseEntity<String> responseEntity = new ResponseEntity<>(geminiJson, HttpStatus.OK);
+        when(restTemplate.exchange(anyString(), eq(HttpMethod.POST), any(HttpEntity.class), eq(String.class)))
+                .thenReturn(responseEntity);
+
+        GeminiCharterResult result = geminiService.generateCharterDraft(testIncident, null);
+
+        assertNotNull(result);
+        assertEquals("Charte d'intervention - Remplacement Switch", result.getTitle());
+        assertEquals(1, result.getSteps().size());
+        assertEquals("Mise hors tension", result.getSteps().get(0).getTitle());
     }
 }
